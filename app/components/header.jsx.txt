@@ -1,0 +1,96 @@
+'use client'; // Explicitly mark this as a client component
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import axios from 'axios';
+import axiosInstance from '@/utils/axiosInstance';
+
+export default function Header() {
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get('/products/categories');
+        setCategories(response.data);
+        console.log(response.data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setIsLoading(false);
+      }
+    };
+  
+    fetchCategories();
+  }, []);
+
+  
+
+  if (isLoading) {
+    return <div>Loading categories...</div>; }
+
+  return (
+    <nav className="navbar navbar-expand-lg navbar-light bg-light">
+      <div className="container-fluid">
+        {/* <a className="navbar-brand" href="#">Navbar</a> */}
+        <div>
+        <i class="bi bi-search"></i>
+          <input type='text' placeholder='search'></input>
+        </div>
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNavDropdown"
+          aria-controls="navbarNavDropdown"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
+        <div className="collapse navbar-collapse" id="navbarNavDropdown">
+          <ul className="navbar-nav">
+            <li className="nav-item">
+              <Link href="/contact" className="nav-link">Contact</Link>
+            </li>
+
+            {categories.length > 0 ? (
+              categories.slice(0, 2).map((category, index) => (
+                <li className="nav-item" key={index}>
+                  <Link href={/category/${category.slug}} className="nav-link">
+                    {category.name}
+                  </Link>
+                </li>
+              ))
+            ) : (
+              <li className="nav-item">
+                <span className="nav-link">No categories found</span>
+              </li>
+            )}
+            <li className="nav-item dropdown">
+              <Link
+                className="nav-link dropdown-toggle"
+                href="#"
+                id="navbarDropdownMenuLink"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Dropdown link
+              </Link>
+              <ul className="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <li><a className="dropdown-item" href="#">Action</a></li>
+                <li><a className="dropdown-item" href="#">Another action</a></li>
+                <li><a className="dropdown-item" href="#">Something else here</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div className='d-flex gap-4'>
+        <Link href="/contact" className="nav-link">Sell</Link>
+        <Link href="/login" className="nav-link">Login</Link>
+        </div>
+      </div>
+    </nav>
+  );
+}

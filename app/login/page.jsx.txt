@@ -1,0 +1,98 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import axiosInstance from '@/utils/axiosInstance';
+
+const Login = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loginStatus, setLoginStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
+
+  // RegEx rules
+  const usernameRegex = /^[a-zA-Z0-9]{3,20}$/;
+  const passwordRegex = /^.{6,}$/;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setErrorMessage('');
+
+    if (!username.trim() || !password.trim()) {
+      setErrorMessage('Username and password are required');
+      return;
+    }
+
+    if (!usernameRegex.test(username)) {
+      setErrorMessage('Username must be 3-20 characters and contain only letters or numbers');
+      return;
+    }
+
+    if (!passwordRegex.test(password)) {
+      setErrorMessage('Password must be at least 6 characters long');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post('/auth/login', {
+        username,
+        password,
+        expiresInMins: 3065,
+      });
+
+      const { accessToken } = response.data;
+      console.log(response.data);
+
+      setLoginStatus('Login successful');
+      setUsername('');
+      setPassword('');
+      
+      if (accessToken) {
+        router.push('/dashboard');
+      } else {
+        setErrorMessage('Invalid credentials');
+      }
+    } catch (error) {
+      setErrorMessage('Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="col-md-6 p-0">
+      <div className="blue-box height">
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="username"
+            onChange={(e) => setUsername(e.target.value)}
+            value={username}
+            className="form-control w-100"
+            placeholder="Enter username"
+          />
+          <input
+            type="password"
+            name="password"
+            onChange={(e) => setPassword(e.target.value)}
+            value={password}
+            className="form-control w-100"
+            placeholder="Enter password"
+          />
+          {errorMessage && <p className="text-danger">{errorMessage}</p>}
+          <button type="submit" className="btn" disabled={loading}>
+            {loading ? 'Logging in...' : 'Submit'}
+          </button>
+          {loginStatus && <p className="text-success">{loginStatus}</p>}
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
